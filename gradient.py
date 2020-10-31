@@ -14,16 +14,16 @@ def color_from_hex(hexstr):
     return rgba
 
 def build_gradient(colorlist, splitpointlist, resolution=4096):
-    if type(colorlist[0]) is str:
-        colorlist = [color_from_hex(color) for color in colorlist]
+    if type(colorlist[0][0]) is str:
+        colorlist = [[color_from_hex(color) for color in colors] for colors in colorlist]
 
     colorlist = np.array(colorlist)
     splitpointlist = np.array(splitpointlist)
     gradient = np.zeros((resolution,4))
     # Paint in each gradient on the global gradient
-    for i,grad in enumerate(splitpointlist):
+    for i, (grad,colors) in enumerate(zip(splitpointlist, colorlist)):
         start,end = grad[0],grad[1]
-        startcolor,endcolor=colorlist[i*2],colorlist[i*2+1]
+        startcolor,endcolor=colors[0],colors[1]
 
         for j in range(resolution):
             gradient_pos = j/float(resolution)
