@@ -11,10 +11,15 @@ from gi.repository import Pango
 from gi.repository import PangoCairo
 
 class CairoPainter:
-    def __init__(self, path='./frames/out{}.png', width=1920, height=1080, bg=None):
+    def __init__(self, path='./frames/out{}.png', width=1920, height=1080, bg=None, mode='image'):
         self.width, self.height = width, height
         self.path = path
-        self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+        self.mode = mode
+        if self.mode == 'svg':
+            self.surface = cairo.SVGSurface(path, width, height)
+        else:
+            self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+            
         self.ctx = cairo.Context(self.surface)
         if bg is not None and len(bg) not in [3,4]:
             raise Exception('background color is not formatted correctly')
@@ -63,6 +68,8 @@ class CairoPainter:
         return [[x-tw/2,y-th/2],[x+tw/2,y+th/2]]
     
     def get_pixel(self, x, y):
+        if self.mode == 'svg':
+            raise Exception('image sampling unsupported in svg mode')
         x = int(x)
         y = int(y)
         if x < 0 or x >= self.width:
@@ -82,20 +89,34 @@ class CairoPainter:
         return self.get_pixel(x, y)[3] != 0
     
     def output_frame(self):
+        if self.mode == 'svg':
+            raise Exception('Animation not supported in SVG mode')
         self.surface.write_to_png(self.path.format(self.frame))
         self.frame += 1
     
-    def output_snapshot(self, path):
-        self.surface.write_to_png(path)
+    def output_snapshot(self, path=None):
+        if path is None:
+            path = self.path
+        if self.mode == 'svg':
+            self.surface.show_page()
+        else:
+            self.surface.write_to_png(path)
 
 if __name__ == '__main__':
-    painter = CairoPainter()
-    painter.insert_borders(40,40)
-    painter.draw_line(np.array([[0,0],[1920,1080]]), color=[1,0,0], width=20)
-    painter.draw_circle(np.array([1920/2,1080/2]), r=100)
-    painter.draw_text('Test', 1920/2, 1080/2, color=[0.5,0.5,0.5], size=600)
-    painter.get_pixel(1920/2, 1080/2)
-    print(painter.pixel_filled(1920/2,1080/2))
-    print(painter.pixel_filled(0,0))
-    print(painter.pixel_filled(1920-1,1080-1))
-    painter.output_frame()
+    imgpainter = CairoPainter()
+    imgpainter.insert_borders(40,40)
+    imgpainter.draw_line(np.array([[0,0],[1920,1080]]), color=[1,0,0], width=20)
+    imgpainter.draw_circle(np.array([1920/2,1080/2]), r=100)
+    imgpainter.draw_text('Test', 1920/2, 1080/2, color=[0.5,0.5,0.5], size=600)
+    imgpainter.get_pixel(1920/2, 1080/2)
+    print(imgpainter.pixel_filled(1920/2,1080/2))
+    print(imgpainter.pixel_filled(0,0))
+    print(imgpainter.pixel_filled(1920-1,1080-1))
+    imgpainter.output_snapshot()
+
+    svgpainter = CairoPainter('./out.svg', mode='svg')
+    svgpainter.insert_borders(40, 40)
+    svgpainter.draw_line(np.array([[0,0],[1920,1080]]), color=[1,0,0], width=20)
+    svgpainter.draw_circle(np.array([1920/2,1080/2]), r=100)
+    svgpainter.draw_text('Test', 1920/2, 1080/2, color=[0.5,0.5,0.5], size=600)
+    svgpainter.output_snapshot()
