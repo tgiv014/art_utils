@@ -54,9 +54,17 @@ class CairoPainter:
         self.ctx.set_source_rgba(color[0],color[1],color[2],alpha) #2c3e50
         self.ctx.fill()
     
-    def draw_text(self, text, x, y, color=[1,1,1], size=36):
+    def draw_hollow_circle(self, pt, color=[1,1,1], r=1, width=4):
+        self.ctx.arc(pt[0], pt[1], r, 0, 2 * np.pi)
+        self.ctx.set_line_width(width)
+        self.ctx.set_line_cap(cairo.LineCap.ROUND)
+        alpha = color[3] if len(color)==4 else 1
+        self.ctx.set_source_rgba(color[0],color[1],color[2],alpha) #2c3e50
+        self.ctx.stroke()
+    
+    def draw_text(self, text, x, y, font='Inter Black', color=[1,1,1], size=36):
         self.layout = PangoCairo.create_layout(self.ctx)
-        self.layout.set_font_description(Pango.font_description_from_string('Inter Extra-Bold {}'.format(size)))
+        self.layout.set_font_description(Pango.font_description_from_string('{} {}'.format(font, size)))
         self.layout.set_alignment(Pango.Alignment.CENTER)
         self.layout.set_markup(text, -1)
         _, extents = self.layout.get_pixel_extents()
@@ -103,10 +111,11 @@ class CairoPainter:
             self.surface.write_to_png(path)
 
 if __name__ == '__main__':
-    imgpainter = CairoPainter()
+    imgpainter = CairoPainter('./out.png')
     imgpainter.insert_borders(40,40)
     imgpainter.draw_line(np.array([[0,0],[1920,1080]]), color=[1,0,0], width=20)
     imgpainter.draw_circle(np.array([1920/2,1080/2]), r=100)
+    imgpainter.draw_hollow_circle(np.array([1920/2-300,1080/2]), r=100, width=4)
     imgpainter.draw_text('Test', 1920/2, 1080/2, color=[0.5,0.5,0.5], size=600)
     imgpainter.get_pixel(1920/2, 1080/2)
     print(imgpainter.pixel_filled(1920/2,1080/2))
