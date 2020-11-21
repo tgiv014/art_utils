@@ -27,8 +27,11 @@ class CairoPainter:
         if bg is not None:
             self.ctx.rectangle(0, 0, self.width, self.height)
             alpha = bg[3] if len(bg)==4 else 1
-            self.ctx.set_source_rgba(bg[0],bg[1],bg[2],alpha)
+            self.bg = [bg[0],bg[1],bg[2],alpha]
+            self.ctx.set_source_rgba(self.bg[0],self.bg[1],self.bg[2],self.bg[3])
             self.ctx.fill()
+        else:
+            self.bg = [0,0,0,0]
         
         self.frame = 0
     
