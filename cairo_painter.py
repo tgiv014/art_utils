@@ -75,6 +75,14 @@ class CairoPainter:
         PangoCairo.show_layout(self.ctx, self.layout)
         return [[x-tw/2,y-th/2],[x+tw/2,y+th/2]]
     
+    def clear(self):
+        self.ctx.save()
+        self.ctx.set_source_rgba(self.bg[0],self.bg[1],self.bg[2],self.bg[3])
+        self.ctx.set_operator(cairo.Operator.SOURCE)
+        self.ctx.paint()
+        self.ctx.restore()
+        # self.surface.get_data() = np.zeros_like(self.surface.get_data())
+
     def get_pixel(self, x, y):
         if self.mode == 'svg':
             raise Exception('image sampling unsupported in svg mode')
